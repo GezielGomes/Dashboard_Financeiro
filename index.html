@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Saúde Financeira — Tribo Bem Estar</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  :root {
+    --verde-deep: #0d2b1a;
+    --verde-dark: #1a472a;
+    --verde-mid: #2d6a4f;
+    --verde-bright: #52b788;
+    --verde-light: #b7e4c7;
+    --verde-pale: #d8f3dc;
+    --verde-ghost: #f0faf2;
+    --bege: #f7f3ed;
+    --bege-mid: #ede5d8;
+    --bege-dark: #c8b89a;
+    --gold: #c9a84c;
+    --gold-light: #f0d98e;
+    --text-dark: #1a1a1a;
+    --text-mid: #4a4a4a;
+    --text-light: #8a8a8a;
+    --danger: #c0392b;
+    --danger-light: #fce8e6;
+    --info: #1565c0;
+    --info-light: #e3f2fd;
+    --amber: #e67e22;
+    --amber-light: #fef3e2;
+    --white: #ffffff;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bege);
+    color: var(--text-dark);
+    min-height: 100vh;
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    position: fixed;
+    left: 0; top: 0; bottom: 0;
+    width: 72px;
+    background: var(--verde-deep);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 0;
+    gap: 8px;
+    z-index: 100;
+  }
+
+  .sidebar-logo {
+    width: 42px; height: 42px;
+    background: var(--verde-bright);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    margin-bottom: 16px;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  .sidebar-logo:hover { transform: scale(1.08); }
+
+  .nav-item {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    cursor: pointer;
+    transition: background 0.2s;
+    position: relative;
+  }
+  .nav-item:hover { background: rgba(255,255,255,0.1); }
+  .nav-item.active { background: var(--verde-mid); }
+  .nav-item.active::before {
+    content: '';
+    position: absolute;
+    left: -4px; top: 50%;
+    transform: translateY(-50%);
+    width: 3px; height: 24px;
+    background: var(--verde-bright);
+    border-radius: 0 3px 3px 0;
+  }
+
+  .sidebar-spacer { flex: 1; }
+
+  /* MAIN LAYOUT */
+  .main {
+    margin-left: 72px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* TOPBAR */
+  .topbar {
+    background: var(--white);
+    border-bottom: 1px solid var(--bege-mid);
+    padding: 0 32px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+
+  .topbar-left {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .topbar-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--verde-dark);
+    letter-spacing: -0.3px;
+  }
+
+  .topbar-sub {
+    font-size: 12px;
+    color: var(--text-light);
+    font-weight: 300;
+  }
+
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .month-selector {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--verde-ghost);
+    border: 1px solid var(--verde-pale);
+    border-radius: 24px;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--verde-dark);
+    cursor: pointer;
+  }
+
+  .avatar {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--verde-mid), var(--verde-bright));
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+  }
+
+  /* CONTENT */
+  .content {
+    padding: 28px 32px;
+    flex: 1;
+  }
+
+  /* SECTION TITLE */
+  .section-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-light);
+    margin-bottom: 14px;
+  }
+
+  /* KPI GRID */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+
+  .kpi-card {
+    background: var(--white);
+    border-radius: 16px;
+    padding: 18px 16px;
+    border: 1px solid rgba(0,0,0,0.05);
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  }
+
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    border-radius: 16px 16px 0 0;
+  }
+  .kpi-card.green::before { background: var(--verde-bright); }
+  .kpi-card.red::before { background: var(--danger); }
+  .kpi-card.blue::before { background: var(--info); }
+  .kpi-card.gold::before { background: var(--gold); }
+  .kpi-card.amber::before { background: var(--amber); }
+  .kpi-card.teal::before { background: #00897b; }
+
+  .kpi-icon {
+    font-size: 20px;
+    margin-bottom: 10px;
+    display: block;
+  }
+
+  .kpi-label {
+    font-size: 11px;
+    color: var(--text-light);
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    margin-bottom: 6px;
+  }
+
+  .kpi-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .kpi-card.green .kpi-value { color: var(--verde-dark); }
+  .kpi-card.red .kpi-value { color: var(--danger); }
+  .kpi-card.blue .kpi-value { color: var(--info); }
+  .kpi-card.gold .kpi-value { color: var(--gold); }
+  .kpi-card.amber .kpi-value { color: var(--amber); }
+  .kpi-card.teal .kpi-value { color: #00695c; }
+
+  .kpi-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 2px 7px;
+    border-radius: 20px;
+  }
+  .kpi-badge.up { background: var(--verde-pale); color: var(--verde-mid); }
+  .kpi-badge.down { background: var(--danger-light); color: var(--danger); }
+  .kpi-badge.neutral { background: var(--info-light); color: var(--info); }
+  .kpi-badge.warn { background: var(--amber-light); color: var(--amber); }
+
+  /* CHARTS ROW */
+  .charts-row {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .chart-card {
+    background: var(--white);
+    border-radius: 20px;
+    padding: 22px 24px;
+    border: 1px solid rgba(0,0,0,0.05);
+  }
+
+  .chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 18px;
+  }
+
+  .chart-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-dark);
+  }
+
+  .chart-sub {
+    font-size: 12px;
+    color: var(--text-light);
+    margin-top: 2px;
+  }
+
+  .legend-row {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    color: var(--text-mid);
+  }
+  .legend-dot {
+    width: 8px; height: 8px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  .chart-wrap { position: relative; }
+
+  /* BOTTOM ROW */
+  .bottom-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1.2fr;
+    gap: 16px;
+  }
+
+  /* META PROGRESS */
+  .meta-item {
+    margin-bottom: 14px;
+  }
+  .meta-item:last-child { margin-bottom: 0; }
+
+  .meta-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+
+  .meta-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-dark);
+  }
+
+  .meta-pct {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--verde-mid);
+  }
+
+  .meta-bar {
+    height: 7px;
+    background: var(--verde-pale);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+
+  .meta-fill {
+    height: 100%;
+    border-radius: 99px;
+    background: linear-gradient(90deg, var(--verde-mid), var(--verde-bright));
+    transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .meta-vals {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 4px;
+    font-size: 11px;
+    color: var(--text-light);
+  }
+
+  /* ALERTAS */
+  .alert-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 11px 14px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    font-size: 13px;
+  }
+  .alert-item:last-child { margin-bottom: 0; }
+  .alert-item.success { background: var(--verde-ghost); color: var(--verde-mid); border-left: 3px solid var(--verde-bright); }
+  .alert-item.danger { background: var(--danger-light); color: var(--danger); border-left: 3px solid var(--danger); }
+  .alert-item.warn { background: var(--amber-light); color: var(--amber); border-left: 3px solid var(--amber); }
+
+  .alert-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+  .alert-text { line-height: 1.4; }
+
+  /* GASTOS TABLE */
+  .cat-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--bege-mid);
+  }
+  .cat-row:last-child { border-bottom: none; }
+
+  .cat-color { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+  .cat-name { font-size: 13px; color: var(--text-mid); flex: 1; }
+  .cat-val { font-size: 13px; font-weight: 600; color: var(--text-dark); }
+  .cat-pct { font-size: 11px; color: var(--text-light); min-width: 34px; text-align: right; }
+
+  /* PERIOD BADGE */
+  .period-badge {
+    font-size: 11px;
+    background: var(--verde-ghost);
+    color: var(--verde-mid);
+    border: 1px solid var(--verde-pale);
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-weight: 500;
+  }
+
+  /* FOOTER STRIP */
+  .footer-strip {
+    background: var(--verde-deep);
+    color: rgba(255,255,255,0.5);
+    font-size: 11px;
+    text-align: center;
+    padding: 12px;
+    letter-spacing: 0.5px;
+  }
+  .footer-strip strong { color: var(--verde-bright); }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .kpi-card { animation: fadeUp 0.5s ease both; }
+  .kpi-card:nth-child(1) { animation-delay: 0.05s; }
+  .kpi-card:nth-child(2) { animation-delay: 0.10s; }
+  .kpi-card:nth-child(3) { animation-delay: 0.15s; }
+  .kpi-card:nth-child(4) { animation-delay: 0.20s; }
+  .kpi-card:nth-child(5) { animation-delay: 0.25s; }
+  .kpi-card:nth-child(6) { animation-delay: 0.30s; }
+  .chart-card { animation: fadeUp 0.6s ease both; animation-delay: 0.35s; }
+
+  @media (max-width: 1100px) {
+    .kpi-grid { grid-template-columns: repeat(3, 1fr); }
+    .charts-row { grid-template-columns: 1fr; }
+    .bottom-row { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sidebar-logo">🌱</div>
+  <div class="nav-item active" title="Dashboard">📊</div>
+  <div class="nav-item" title="Lançamentos">📋</div>
+  <div class="nav-item" title="Metas">🎯</div>
+  <div class="nav-item" title="Gastos Fixos">💳</div>
+  <div class="nav-item" title="Planejamento">📈</div>
+  <div class="sidebar-spacer"></div>
+  <div class="nav-item" title="Configurações">⚙️</div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-title">Saúde Financeira</div>
+      <div class="topbar-sub">Tribo Bem Estar — Pilar Financeiro</div>
+    </div>
+    <div class="topbar-right">
+      <div class="month-selector">
+        ◀ &nbsp; Março 2026 &nbsp; ▶
+      </div>
+      <div class="avatar">GG</div>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- KPIs -->
+    <div class="section-label">Resumo do mês</div>
+    <div class="kpi-grid">
+      <div class="kpi-card green">
+        <span class="kpi-icon">💰</span>
+        <div class="kpi-label">Receita total</div>
+        <div class="kpi-value">R$ 5.200</div>
+        <span class="kpi-badge up">↑ 8%</span>
+      </div>
+      <div class="kpi-card red">
+        <span class="kpi-icon">💸</span>
+        <div class="kpi-label">Despesas</div>
+        <div class="kpi-value">R$ 3.840</div>
+        <span class="kpi-badge down">↑ 3%</span>
+      </div>
+      <div class="kpi-card blue">
+        <span class="kpi-icon">📊</span>
+        <div class="kpi-label">Saldo do mês</div>
+        <div class="kpi-value">R$ 1.360</div>
+        <span class="kpi-badge neutral">Positivo</span>
+      </div>
+      <div class="kpi-card gold">
+        <span class="kpi-icon">🐷</span>
+        <div class="kpi-label">Economizado</div>
+        <div class="kpi-value">R$ 900</div>
+        <span class="kpi-badge warn">Meta: 1.000</span>
+      </div>
+      <div class="kpi-card teal">
+        <span class="kpi-icon">🎯</span>
+        <div class="kpi-label">Meta de economia</div>
+        <div class="kpi-value">R$ 1.000</div>
+        <span class="kpi-badge neutral">Mensal</span>
+      </div>
+      <div class="kpi-card amber">
+        <span class="kpi-icon">📈</span>
+        <div class="kpi-label">% Meta atingida</div>
+        <div class="kpi-value">90%</div>
+        <span class="kpi-badge warn">Quase lá!</span>
+      </div>
+    </div>
+
+    <!-- CHARTS ROW -->
+    <div class="charts-row">
+
+      <!-- LINE CHART -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">Evolução Financeira</div>
+            <div class="chart-sub">Receitas, despesas e saldo — últimos 6 meses</div>
+          </div>
+          <span class="period-badge">Jan – Mar 2026</span>
+        </div>
+        <div class="legend-row">
+          <div class="legend-item"><div class="legend-dot" style="background:#52b788"></div>Receitas</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#c0392b"></div>Despesas</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#1565c0"></div>Saldo</div>
+        </div>
+        <div class="chart-wrap" style="height: 220px;">
+          <canvas id="lineChart"></canvas>
+        </div>
+      </div>
+
+      <!-- PIE CHART -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">Gastos por Categoria</div>
+            <div class="chart-sub">Distribuição — Março</div>
+          </div>
+        </div>
+        <div class="chart-wrap" style="height: 180px;">
+          <canvas id="pieChart"></canvas>
+        </div>
+        <div style="margin-top: 12px;">
+          <div class="cat-row"><div class="cat-color" style="background:#1a472a"></div><div class="cat-name">Moradia</div><div class="cat-val">R$ 1.285</div><div class="cat-pct">33%</div></div>
+          <div class="cat-row"><div class="cat-color" style="background:#2d6a4f"></div><div class="cat-name">Alimentação</div><div class="cat-val">R$ 530</div><div class="cat-pct">14%</div></div>
+          <div class="cat-row"><div class="cat-color" style="background:#52b788"></div><div class="cat-name">Transporte</div><div class="cat-val">R$ 185</div><div class="cat-pct">5%</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOTTOM ROW -->
+    <div class="bottom-row">
+
+      <!-- BAR CHART -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">Economia Mensal</div>
+            <div class="chart-sub">Realizado vs Meta</div>
+          </div>
+        </div>
+        <div class="legend-row">
+          <div class="legend-item"><div class="legend-dot" style="background:#2d6a4f"></div>Economizado</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#bdbdbd"></div>Meta</div>
+        </div>
+        <div class="chart-wrap" style="height: 170px;">
+          <canvas id="barChart"></canvas>
+        </div>
+      </div>
+
+      <!-- ALERTAS -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">Alertas Inteligentes</div>
+            <div class="chart-sub">Análise automática do mês</div>
+          </div>
+        </div>
+        <div class="alert-item success">
+          <div class="alert-icon">✅</div>
+          <div class="alert-text">Saldo positivo pelo 3º mês consecutivo. Ótimo desempenho!</div>
+        </div>
+        <div class="alert-item warn">
+          <div class="alert-icon">⚠️</div>
+          <div class="alert-text">Você está 10% abaixo da meta de economia este mês.</div>
+        </div>
+        <div class="alert-item danger">
+          <div class="alert-icon">🔴</div>
+          <div class="alert-text">Gastos com lazer aumentaram 22% em relação ao mês anterior.</div>
+        </div>
+      </div>
+
+      <!-- METAS -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">Progresso das Metas</div>
+            <div class="chart-sub">Acompanhamento acumulado</div>
+          </div>
+        </div>
+
+        <div class="meta-item">
+          <div class="meta-top">
+            <div class="meta-name">🛡️ Reserva de Emergência</div>
+            <div class="meta-pct">45%</div>
+          </div>
+          <div class="meta-bar"><div class="meta-fill" style="width: 45%"></div></div>
+          <div class="meta-vals"><span>R$ 4.500</span><span>Meta: R$ 10.000</span></div>
+        </div>
+
+        <div class="meta-item">
+          <div class="meta-top">
+            <div class="meta-name">✈️ Viagem / Férias</div>
+            <div class="meta-pct">16%</div>
+          </div>
+          <div class="meta-bar"><div class="meta-fill" style="width: 16%"></div></div>
+          <div class="meta-vals"><span>R$ 800</span><span>Meta: R$ 5.000</span></div>
+        </div>
+
+        <div class="meta-item">
+          <div class="meta-top">
+            <div class="meta-name">📈 Investimentos</div>
+            <div class="meta-pct">16%</div>
+          </div>
+          <div class="meta-bar"><div class="meta-fill" style="width: 16%"></div></div>
+          <div class="meta-vals"><span>R$ 3.200</span><span>Meta: R$ 20.000</span></div>
+        </div>
+
+        <div class="meta-item">
+          <div class="meta-top">
+            <div class="meta-name">💻 Novo Notebook</div>
+            <div class="meta-pct">34%</div>
+          </div>
+          <div class="meta-bar"><div class="meta-fill" style="width: 34%"></div></div>
+          <div class="meta-vals"><span>R$ 1.200</span><span>Meta: R$ 3.500</span></div>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- /content -->
+
+  <div class="footer-strip">
+    Desenvolvido para <strong>Tribo Bem Estar</strong> &nbsp;•&nbsp; Pilar Financeiro &nbsp;•&nbsp; 2026
+  </div>
+
+</div><!-- /main -->
+
+<script>
+const VERDE = '#2d6a4f';
+const VERDE_BRIGHT = '#52b788';
+const DANGER = '#c0392b';
+const BLUE = '#1565c0';
+const GOLD = '#c9a84c';
+const GRAY = '#bdbdbd';
+
+// LINE CHART
+new Chart(document.getElementById('lineChart'), {
+  type: 'line',
+  data: {
+    labels: ['Out', 'Nov', 'Dez', 'Jan', 'Fev', 'Mar'],
+    datasets: [
+      {
+        label: 'Receitas',
+        data: [4800, 5000, 4600, 5100, 4900, 5200],
+        borderColor: VERDE_BRIGHT,
+        backgroundColor: 'rgba(82,183,136,0.08)',
+        tension: 0.45,
+        fill: true,
+        pointRadius: 4,
+        pointBackgroundColor: VERDE_BRIGHT,
+        borderWidth: 2.5
+      },
+      {
+        label: 'Despesas',
+        data: [3900, 4100, 4300, 3700, 3800, 3840],
+        borderColor: DANGER,
+        backgroundColor: 'rgba(192,57,43,0.04)',
+        tension: 0.45,
+        fill: true,
+        pointRadius: 4,
+        pointBackgroundColor: DANGER,
+        borderWidth: 2.5
+      },
+      {
+        label: 'Saldo',
+        data: [900, 900, 300, 1400, 1100, 1360],
+        borderColor: BLUE,
+        backgroundColor: 'rgba(21,101,192,0.04)',
+        tension: 0.45,
+        fill: false,
+        pointRadius: 4,
+        pointBackgroundColor: BLUE,
+        borderWidth: 2,
+        borderDash: [5, 3]
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { display: false }, ticks: { font: { size: 11 }, color: '#8a8a8a' } },
+      y: {
+        grid: { color: 'rgba(0,0,0,0.04)' },
+        ticks: {
+          font: { size: 11 }, color: '#8a8a8a',
+          callback: v => 'R$' + (v/1000).toFixed(1) + 'k'
+        }
+      }
+    }
+  }
+});
+
+// PIE CHART
+new Chart(document.getElementById('pieChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Moradia', 'Alimentação', 'Transporte', 'Saúde', 'Lazer', 'Serviços', 'Educação'],
+    datasets: [{
+      data: [33, 14, 5, 10, 8, 11, 8, 11],
+      backgroundColor: ['#1a472a','#2d6a4f','#52b788','#74c69d','#95d5b2','#b7e4c7','#d8f3dc'],
+      borderWidth: 2,
+      borderColor: '#ffffff'
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    cutout: '65%',
+    plugins: { legend: { display: false } }
+  }
+});
+
+// BAR CHART
+new Chart(document.getElementById('barChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Out', 'Nov', 'Dez', 'Jan', 'Fev', 'Mar'],
+    datasets: [
+      {
+        label: 'Economizado',
+        data: [750, 820, 400, 980, 1050, 900],
+        backgroundColor: VERDE,
+        borderRadius: 6,
+        borderSkipped: false
+      },
+      {
+        label: 'Meta',
+        data: [1000, 1000, 1000, 1000, 1000, 1000],
+        backgroundColor: 'transparent',
+        borderColor: GRAY,
+        borderWidth: 2,
+        type: 'line',
+        pointRadius: 0,
+        borderDash: [4, 3],
+        tension: 0
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { display: false }, ticks: { font: { size: 11 }, color: '#8a8a8a' } },
+      y: {
+        grid: { color: 'rgba(0,0,0,0.04)' },
+        ticks: {
+          font: { size: 11 }, color: '#8a8a8a',
+          callback: v => 'R$' + v
+        }
+      }
+    }
+  }
+});
+</script>
+</body>
+</html>
